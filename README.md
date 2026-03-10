@@ -10,7 +10,7 @@ A financial dashboard for South African small businesses with an AI-powered repo
 - Monthly target tracking
 
 ## Tech Stack
-HTML · CSS · JavaScript · Claude AI API
+HTML · CSS · JavaScript · Groq AI API
 
 ## Live Demo
 [View on Vercel](your-vercel-link-here)
