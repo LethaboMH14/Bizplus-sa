@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizPulse SA — Small Business Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111814;
+    --surface2: #171f1b;
+    --border: #1e2b25;
+    --accent: #00e87a;
+    --accent2: #00b85e;
+    --accent-dim: rgba(0,232,122,0.08);
+    --accent-dim2: rgba(0,232,122,0.15);
+    --text: #e8f0ec;
+    --text-muted: #6b8577;
+    --text-dim: #3d5449;
+    --red: #ff4d6a;
+    --red-dim: rgba(255,77,106,0.1);
+    --yellow: #f5c542;
+    --yellow-dim: rgba(245,197,66,0.1);
+    --blue: #4da6ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-mark {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .nav {
+    padding: 20px 12px;
+    flex: 1;
+  }
+
+  .nav-label {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0 12px;
+    margin-bottom: 8px;
+    margin-top: 16px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover { background: var(--accent-dim); color: var(--text); }
+  .nav-item.active { background: var(--accent-dim2); color: var(--accent); font-weight: 500; }
+
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .business-badge {
+    margin: 16px 12px;
+    padding: 12px;
+    background: var(--accent-dim);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .biz-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); }
+  .biz-type { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .biz-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* MAIN */
+  .main {
+    margin-left: 220px;
+    min-height: 100vh;
+    padding: 32px 36px;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    animation: fadeUp 0.5s ease;
+  }
+
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .page-sub { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+  .topbar-right { display: flex; gap: 12px; align-items: center; }
+
+  .period-selector {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .period-btn {
+    padding: 7px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .period-btn.active { background: var(--accent); color: #000; font-weight: 500; }
+
+  .add-btn {
+    padding: 8px 18px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .add-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+    transition: border-color 0.2s;
+  }
+
+  .kpi-card:hover { border-color: var(--accent); }
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.1s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.2s; }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    filter: blur(30px);
+    opacity: 0.15;
+  }
+
+  .kpi-card.green::before { background: var(--accent); }
+  .kpi-card.red::before { background: var(--red); }
+  .kpi-card.yellow::before { background: var(--yellow); }
+  .kpi-card.blue::before { background: var(--blue); }
+
+  .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 12px; }
+  .kpi-value { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+  .kpi-value.green { color: var(--accent); }
+  .kpi-value.red { color: var(--red); }
+  .kpi-value.yellow { color: var(--yellow); }
+  .kpi-value.blue { color: var(--blue); }
+
+  .kpi-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    margin-top: 8px;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .kpi-change.up { background: rgba(0,232,122,0.1); color: var(--accent); }
+  .kpi-change.down { background: var(--red-dim); color: var(--red); }
+
+  /* CHARTS ROW */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .card-badge {
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* BAR CHART */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 160px;
+    padding-bottom: 28px;
+    position: relative;
+  }
+
+  .bar-chart::after {
+    content: '';
+    position: absolute;
+    bottom: 28px; left: 0; right: 0;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .bar-wrap { width: 100%; display: flex; gap: 3px; justify-content: center; align-items: flex-end; height: calc(100% - 20px); }
+
+  .bar {
+    width: 45%;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .bar.income { background: var(--accent); opacity: 0.9; }
+  .bar.expense { background: var(--red); opacity: 0.7; }
+  .bar:hover { opacity: 1; filter: brightness(1.2); }
+
+  .bar-label { font-size: 10px; color: var(--text-muted); text-align: center; }
+
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* DONUT CHART */
+  .donut-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .donut-svg { position: relative; }
+
+  .donut-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .donut-center-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent); }
+  .donut-center-lbl { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+
+  .donut-legend { width: 100%; }
+  .donut-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+
+  .donut-item:last-child { border-bottom: none; }
+  .donut-item-left { display: flex; align-items: center; gap: 8px; }
+  .donut-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .donut-pct { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; }
+
+  /* TRANSACTIONS */
+  .tx-list { display: flex; flex-direction: column; gap: 10px; }
+  .tx-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .tx-item:hover { border-color: var(--accent); background: var(--accent-dim); }
+
+  .tx-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .tx-icon.income { background: rgba(0,232,122,0.15); }
+  .tx-icon.expense { background: var(--red-dim); }
+
+  .tx-info { flex: 1; }
+  .tx-name { font-size: 13.5px; font-weight: 500; color: var(--text); }
+  .tx-cat { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .tx-date { font-size: 11px; color: var(--text-dim); }
+
+  .tx-amount { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .tx-amount.income { color: var(--accent); }
+  .tx-amount.expense { color: var(--red); }
+
+  /* AI REPORT SECTION */
+  .ai-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s ease both;
+    animation-delay: 0.3s;
+  }
+
+  .ai-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .ai-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(0,232,122,0.2), rgba(77,166,255,0.1));
+    border: 1px solid rgba(0,232,122,0.3);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .ai-prompt-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .ai-prompt-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .ai-prompt-input:focus { border-color: var(--accent); }
+  .ai-prompt-input::placeholder { color: var(--text-dim); }
+
+  .generate-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent), #00c466);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,232,122,0.3); }
+  .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .quick-prompts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+
+  .quick-btn {
+    padding: 6px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  .ai-output {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    display: none;
+    animation: fadeUp 0.4s ease;
+  }
+
+  .ai-output.visible { display: block; }
+
+  .ai-output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ai-output-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); }
+  .ai-output-date { font-size: 11px; color: var(--text-muted); }
+
+  .ai-output-body { font-size: 13.5px; line-height: 1.8; color: var(--text-muted); }
+  .ai-output-body strong { color: var(--text); font-weight: 600; }
+  .ai-output-body .highlight { color: var(--accent); font-weight: 600; }
+  .ai-output-body .warning { color: var(--yellow); font-weight: 600; }
+  .ai-output-body .danger { color: var(--red); font-weight: 600; }
+
+  .ai-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+
+  .ai-insight-box {
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .ai-insight-box.positive { background: rgba(0,232,122,0.05); border-color: rgba(0,232,122,0.2); }
+  .ai-insight-box.negative { background: var(--red-dim); border-color: rgba(255,77,106,0.2); }
+  .ai-insight-box.neutral { background: var(--yellow-dim); border-color: rgba(245,197,66,0.2); }
+
+  .ai-insight-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 600; }
+  .ai-insight-box.positive .ai-insight-title { color: var(--accent); }
+  .ai-insight-box.negative .ai-insight-title { color: var(--red); }
+  .ai-insight-box.neutral .ai-insight-title { color: var(--yellow); }
+
+  .ai-insight-text { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; }
+
+  .loading-dots {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .loading-dots span {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 32px;
+    width: 460px;
+    animation: scaleIn 0.3s ease;
+  }
+
+  @keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 24px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-select option { background: var(--surface2); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .type-toggle { display: flex; gap: 8px; }
+  .type-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.2s;
+  }
+
+  .type-btn.income.active { background: rgba(0,232,122,0.15); border-color: var(--accent); color: var(--accent); }
+  .type-btn.expense.active { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+  .modal-footer { display: flex; gap: 10px; margin-top: 24px; }
+  .cancel-btn {
+    flex: 1;
+    padding: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+  }
+
+  .save-btn {
+    flex: 2;
+    padding: 12px;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .save-btn:hover { background: var(--accent2); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* BOTTOM ROW */
+  .bottom-row { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">BizPulse</div>
+    <div class="logo-sub">South Africa</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Main</div>
+    <div class="nav-item active"><span class="nav-icon">◈</span> Dashboard</div>
+    <div class="nav-item"><span class="nav-icon">↕</span> Transactions</div>
+    <div class="nav-item"><span class="nav-icon">◎</span> Analytics</div>
+    <div class="nav-label">Tools</div>
+    <div class="nav-item"><span class="nav-icon">✦</span> AI Reports</div>
+    <div class="nav-item"><span class="nav-icon">◷</span> Forecasts</div>
+    <div class="nav-label">Account</div>
+    <div class="nav-item"><span class="nav-icon">⊕</span> Settings</div>
+  </nav>
+  <div class="business-badge">
+    <div class="biz-name"><span class="biz-dot"></span>Masilo Traders</div>
+    <div class="biz-type">Retail · Johannesburg</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="page-title">Financial Overview</div>
+      <div class="page-sub">March 2026 — Real-time tracking</div>
+    </div>
+    <div class="topbar-right">
+      <div class="period-selector">
+        <button class="period-btn">1M</button>
+        <button class="period-btn active">3M</button>
+        <button class="period-btn">6M</button>
+        <button class="period-btn">1Y</button>
+      </div>
+      <button class="add-btn" onclick="openModal()">＋ Add Transaction</button>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card green">
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value green" id="kpi-revenue">R 84,200</div>
+      <div class="kpi-change up">↑ 12.4% vs last period</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Total Expenses</div>
+      <div class="kpi-value red" id="kpi-expenses">R 51,340</div>
+      <div class="kpi-change down">↑ 7.1% vs last period</div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">Net Profit</div>
+      <div class="kpi-value yellow" id="kpi-profit">R 32,860</div>
+      <div class="kpi-change up">↑ 21.3% vs last period</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">Profit Margin</div>
+      <div class="kpi-value blue" id="kpi-margin">39.0%</div>
+      <div class="kpi-change up">↑ 3.2% vs last period</div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-row">
+    <!-- BAR CHART -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Income vs Expenses</div>
+        <div class="card-badge">Monthly</div>
+      </div>
+      <div class="bar-chart" id="barChart"></div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Revenue</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Expenses</div>
+      </div>
+    </div>
+
+    <!-- DONUT CHART -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Expense Breakdown</div>
+      </div>
+      <div class="donut-wrap">
+        <div style="position:relative; width:150px; height:150px;">
+          <svg viewBox="0 0 36 36" width="150" height="150">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1e2b25" stroke-width="3.2"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ff4d6a" stroke-width="3.2"
+              stroke-dasharray="35 65" stroke-dashoffset="25" style="transition:0.3s"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f5c542" stroke-width="3.2"
+              stroke-dasharray="25 75" stroke-dashoffset="-10" style="transition:0.3s"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4da6ff" stroke-width="3.2"
+              stroke-dasharray="20 80" stroke-dashoffset="-35" style="transition:0.3s"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#b44dff" stroke-width="3.2"
+              stroke-dasharray="20 80" stroke-dashoffset="-55" style="transition:0.3s"/>
+          </svg>
+          <div class="donut-center">
+            <div class="donut-center-val">R51k</div>
+            <div class="donut-center-lbl">TOTAL</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="donut-item">
+            <div class="donut-item-left"><div class="donut-dot" style="background:#ff4d6a"></div> Stock / Inventory</div>
+            <div class="donut-pct" style="color:#ff4d6a">35%</div>
+          </div>
+          <div class="donut-item">
+            <div class="donut-item-left"><div class="donut-dot" style="background:#f5c542"></div> Rent & Utilities</div>
+            <div class="donut-pct" style="color:#f5c542">25%</div>
+          </div>
+          <div class="donut-item">
+            <div class="donut-item-left"><div class="donut-dot" style="background:#4da6ff"></div> Staff & Labour</div>
+            <div class="donut-pct" style="color:#4da6ff">20%</div>
+          </div>
+          <div class="donut-item">
+            <div class="donut-item-left"><div class="donut-dot" style="background:#b44dff"></div> Other</div>
+            <div class="donut-pct" style="color:#b44dff">20%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI REPORT SECTION -->
+  <div class="ai-section">
+    <div class="ai-header">
+      <div class="card-title" style="font-size:17px">AI Business Report Generator</div>
+      <div class="ai-badge">✦ Powered by AI</div>
+    </div>
+
+    <div class="quick-prompts">
+      <button class="quick-btn" onclick="setPrompt('Summarise my financial performance this month')">Monthly summary</button>
+      <button class="quick-btn" onclick="setPrompt('What are my top spending categories and how can I reduce them?')">Cut costs</button>
+      <button class="quick-btn" onclick="setPrompt('Analyse my profit margins and give recommendations')">Profit analysis</button>
+      <button class="quick-btn" onclick="setPrompt('Is my business growing? Compare trends over the last 3 months')">Growth trends</button>
+      <button class="quick-btn" onclick="setPrompt('What should I focus on to increase revenue next month?')">Revenue tips</button>
+    </div>
+
+    <div class="ai-prompt-row">
+      <input class="ai-prompt-input" id="aiPrompt" type="text" placeholder="Ask anything about your business finances... e.g. 'How is my cash flow trending?'" />
+      <button class="generate-btn" id="generateBtn" onclick="generateReport()">
+        <span>✦</span> Generate Report
+      </button>
+    </div>
+
+    <div class="ai-output" id="aiOutput">
+      <div class="ai-output-header">
+        <div class="ai-output-title" id="reportTitle">Business Performance Report</div>
+        <div class="ai-output-date" id="reportDate"></div>
+      </div>
+      <div class="ai-output-body" id="reportBody"></div>
+      <div class="ai-sections" id="reportInsights"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM ROW: TRANSACTIONS + TARGETS -->
+  <div class="bottom-row">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Recent Transactions</div>
+        <div class="card-badge" id="txCount">6 entries</div>
+      </div>
+      <div class="tx-list" id="txList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Monthly Targets</div>
+      </div>
+      <div id="targets"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Add Transaction</div>
+
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <div class="type-toggle">
+        <button class="type-btn income active" id="typeIncome" onclick="setType('income')">↑ Income</button>
+        <button class="type-btn expense" id="typeExpense" onclick="setType('expense')">↓ Expense</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input class="form-input" id="txDesc" placeholder="e.g. Product sale" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (R)</label>
+        <input class="form-input" id="txAmount" type="number" placeholder="0.00" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="txCat">
+          <option value="Sales">Sales</option>
+          <option value="Services">Services</option>
+          <option value="Stock">Stock / Inventory</option>
+          <option value="Rent">Rent & Utilities</option>
+          <option value="Staff">Staff & Labour</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" id="txDate" type="date" />
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      <button class="save-btn" onclick="saveTransaction()">Save Transaction</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+let transactions = [
+  { id:1, type:'income', desc:'Product Sales — March W1', cat:'Sales', amount:18400, date:'2026-03-01' },
+  { id:2, type:'expense', desc:'Stock Restock from Supplier', cat:'Stock', amount:9200, date:'2026-03-02' },
+  { id:3, type:'income', desc:'Consulting Services', cat:'Services', amount:6500, date:'2026-03-04' },
+  { id:4, type:'expense', desc:'Monthly Rent — Jozi CBD', cat:'Rent', amount:7800, date:'2026-03-05' },
+  { id:5, type:'income', desc:'Online Order Fulfillment', cat:'Sales', amount:4200, date:'2026-03-07' },
+  { id:6, type:'expense', desc:'Staff Wages — Week 1', cat:'Staff', amount:5600, date:'2026-03-08' },
+];
+
+let currentType = 'income';
+let txIdCounter = 7;
+
+const monthData = [
+  { month:'Oct', income:24000, expense:16000 },
+  { month:'Nov', income:28000, expense:17500 },
+  { month:'Dec', income:35000, expense:21000 },
+  { month:'Jan', income:27000, expense:18000 },
+  { month:'Feb', income:31000, expense:19500 },
+  { month:'Mar', income:38000, expense:22000 },
+];
+
+// ============ RENDER FUNCTIONS ============
+function renderKPIs() {
+  const income = transactions.filter(t => t.type === 'income').reduce((a,t) => a+t.amount, 0);
+  const expenses = transactions.filter(t => t.type === 'expense').reduce((a,t) => a+t.amount, 0);
+  const profit = income - expenses;
+  const margin = income > 0 ? ((profit / income) * 100).toFixed(1) : 0;
+
+  document.getElementById('kpi-revenue').textContent = `R ${income.toLocaleString()}`;
+  document.getElementById('kpi-expenses').textContent = `R ${expenses.toLocaleString()}`;
+  document.getElementById('kpi-profit').textContent = `R ${profit.toLocaleString()}`;
+  document.getElementById('kpi-margin').textContent = `${margin}%`;
+}
+
+function renderBarChart() {
+  const chart = document.getElementById('barChart');
+  const maxVal = Math.max(...monthData.map(d => Math.max(d.income, d.expense)));
+  chart.innerHTML = monthData.map(d => {
+    const ih = ((d.income / maxVal) * 120).toFixed(1);
+    const eh = ((d.expense / maxVal) * 120).toFixed(1);
+    return `
+      <div class="bar-group">
+        <div class="bar-wrap">
+          <div class="bar income" style="height:${ih}px" title="R${d.income.toLocaleString()}"></div>
+          <div class="bar expense" style="height:${eh}px" title="R${d.expense.toLocaleString()}"></div>
+        </div>
+        <div class="bar-label">${d.month}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderTransactions() {
+  const icons = { Sales:'🛍', Services:'💼', Stock:'📦', Rent:'🏢', Staff:'👥', Marketing:'📣', Other:'💳' };
+  const list = document.getElementById('txList');
+  const recent = [...transactions].reverse().slice(0, 6);
+  list.innerHTML = recent.map(t => `
+    <div class="tx-item">
+      <div class="tx-icon ${t.type}">${icons[t.cat] || '💳'}</div>
+      <div class="tx-info">
+        <div class="tx-name">${t.desc}</div>
+        <div class="tx-cat">${t.cat} · <span class="tx-date">${formatDate(t.date)}</span></div>
+      </div>
+      <div class="tx-amount ${t.type}">${t.type === 'income' ? '+' : '-'}R${t.amount.toLocaleString()}</div>
+    </div>
+  `).join('');
+  document.getElementById('txCount').textContent = `${transactions.length} entries`;
+}
+
+function renderTargets() {
+  const income = transactions.filter(t => t.type === 'income').reduce((a,t) => a+t.amount, 0);
+  const expenses = transactions.filter(t => t.type === 'expense').reduce((a,t) => a+t.amount, 0);
+  const profit = income - expenses;
+
+  const targets = [
+    { label:'Revenue Target', current: income, goal: 50000, color: 'var(--accent)' },
+    { label:'Expense Limit', current: expenses, goal: 30000, color: 'var(--red)', inverse: true },
+    { label:'Profit Goal', current: profit, goal: 25000, color: 'var(--yellow)' },
+  ];
+
+  document.getElementById('targets').innerHTML = targets.map(t => {
+    const pct = Math.min((t.current / t.goal) * 100, 100).toFixed(0);
+    const over = t.current > t.goal;
+    return `
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:13px;color:var(--text-muted)">${t.label}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:13px;color:${t.color}">R${t.current.toLocaleString()} / R${t.goal.toLocaleString()}</div>
+        </div>
+        <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${over && t.inverse ? 'var(--red)' : t.color};border-radius:4px;transition:width 0.5s ease;"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:5px;">${pct}% of target ${over && !t.inverse ? '✓ Achieved!' : over && t.inverse ? '⚠ Over limit' : 'remaining'}</div>
+      </div>`;
+  }).join('');
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+}
+
+// ============ MODAL ============
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('txDesc').value = '';
+  document.getElementById('txAmount').value = '';
+}
+
+function setType(type) {
+  currentType = type;
+  document.getElementById('typeIncome').classList.toggle('active', type === 'income');
+  document.getElementById('typeExpense').classList.toggle('active', type === 'expense');
+}
+
+function saveTransaction() {
+  const desc = document.getElementById('txDesc').value.trim();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const cat = document.getElementById('txCat').value;
+  const date = document.getElementById('txDate').value;
+
+  if (!desc || !amount || !date) { alert('Please fill all fields'); return; }
+
+  transactions.push({ id: txIdCounter++, type: currentType, desc, cat, amount, date });
+  renderAll();
+  closeModal();
+}
+
+// ============ AI REPORT ============
+function setPrompt(text) {
+  document.getElementById('aiPrompt').value = text;
+}
+
+async function generateReport() {
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  if (!prompt) { document.getElementById('aiPrompt').focus(); return; }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="loading-dots"><span></span><span></span><span></span></span> Generating...`;
+
+  const income = transactions.filter(t => t.type === 'income').reduce((a,t) => a+t.amount, 0);
+  const expenses = transactions.filter(t => t.type === 'expense').reduce((a,t) => a+t.amount, 0);
+  const profit = income - expenses;
+  const margin = income > 0 ? ((profit/income)*100).toFixed(1) : 0;
+  const stockExp = transactions.filter(t => t.type === 'expense' && t.cat === 'Stock').reduce((a,t) => a+t.amount, 0);
+  const rentExp = transactions.filter(t => t.type === 'expense' && t.cat === 'Rent').reduce((a,t) => a+t.amount, 0);
+  const staffExp = transactions.filter(t => t.type === 'expense' && t.cat === 'Staff').reduce((a,t) => a+t.amount, 0);
+
+  const businessContext = `Business: Masilo Traders (Retail, Johannesburg, SA)
+Period: March 2026 | Transactions: ${transactions.length}
+Revenue: R${income.toLocaleString()} | Expenses: R${expenses.toLocaleString()} | Net Profit: R${profit.toLocaleString()} | Margin: ${margin}%
+Stock spend: R${stockExp.toLocaleString()} | Rent: R${rentExp.toLocaleString()} | Staff: R${staffExp.toLocaleString()}
+Recent: ${transactions.slice(-4).map(t => `${t.type} R${t.amount} (${t.cat})`).join(', ')}`;
+
+  try {
+    const response = await fetch('/api/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, businessContext })
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Failed to generate report');
+
+    document.getElementById('reportTitle').textContent = result.title;
+    document.getElementById('reportDate').textContent = new Date().toLocaleDateString('en-ZA', { day:'numeric', month:'long', year:'numeric' });
+    document.getElementById('reportBody').innerHTML = result.summary;
+    document.getElementById('reportInsights').innerHTML = `
+      <div class="ai-insight-box positive">
+        <div class="ai-insight-title">${result.positive.title}</div>
+        <div class="ai-insight-text">${result.positive.text}</div>
+      </div>
+      <div class="ai-insight-box negative">
+        <div class="ai-insight-title">${result.negative.title}</div>
+        <div class="ai-insight-text">${result.negative.text}</div>
+      </div>
+      <div class="ai-insight-box neutral" style="grid-column:1/-1">
+        <div class="ai-insight-title">${result.action.title}</div>
+        <div class="ai-insight-text">${result.action.text}</div>
+      </div>`;
+
+    document.getElementById('aiOutput').classList.add('visible');
+  } catch(e) {
+    document.getElementById('reportBody').innerHTML = `<span style="color:var(--red)">${e.message || 'Unable to generate report. Please try again.'}</span>`;
+    document.getElementById('aiOutput').classList.add('visible');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>✦</span> Generate Report';
+}
+
+// ============ INIT ============
+function renderAll() {
+  renderKPIs();
+  renderBarChart();
+  renderTransactions();
+  renderTargets();
+}
+
+// Period buttons
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+
+renderAll();
+</script>
+</body>
+</html>
