@@ -1090,15 +1090,21 @@ Transactions (${transactions.length} total):
 Recent transactions: ${transactions.slice(-4).map(t => `${t.type}: R${t.amount} (${t.cat})`).join(', ')}`;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{
-          role: "user",
-          content: `You are a professional business financial analyst for South African small businesses. Given this business data:
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer YOUR_GROQ_API_KEY_HERE"
+  },
+  body: JSON.stringify({
+    model: "llama-3.3-70b-versatile",
+    max_tokens: 1000,
+    messages: [{ role: "user", content: `...your prompt...` }]
+  })
+});
+
+const data = await response.json();
+let text = data.choices[0].message.content;
 
 ${businessContext}
 
